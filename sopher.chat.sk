@@ -32,7 +32,7 @@ options:
 	tag: &c»&9
 # Wiadomosc, ktora wyswietla sie jezeli gracz nie ma uprawnien.
 	prms: &cNie masz uprawnien, aby to wykonac!
-# Ile gracza ma czekac czasu zanim napisze wiadomosc.
+# Ile gracza ma czekac czasu zanim napisze wiadomosc. (czas w sekundach)
 	cooldown: 5
 	
 # Wersja skryptu, tutaj nie musisz nic zmieniac :-)
@@ -236,7 +236,7 @@ command /chat [<text>] [<offline player>]:
 # Komenda do zarzadzania cenzurami.			
 command /cenzura [<text>] [<text>]:
 	trigger:
-		if player has permission "sopher.chat.*" or "sopher.chat.wlacz":
+		if player has permission "sopher.chat.*" or "sopher.chat.cenzura":
 			if arg 1 is not set:
 				send "| &cSLOWA CENZUROWANE &f|"
 				stop
