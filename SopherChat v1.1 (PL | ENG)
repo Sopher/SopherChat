@@ -1,0 +1,362 @@
+# Author: Sopher
+# Script name: SopherChat v1.1
+# Skript version: 2.0.2
+# Requirements: none
+# License: Sopher Open Script License
+# URL: https://github.com/Sopher/sopheropenscriptlicense
+
+# VARIABLES - don't change. // ZMIENNE - nie zmieniaj.
+variables:
+	{sopher.chat::%player%.kolor_nick} = "&7"
+	{sopher.chat::%player%.kolor_msg} = "&f"
+	{sopher.chat.mute::%player%} = false
+	{sopher.chat.status} = true
+		
+# CONFIGURATION // KONFIGURACJA
+options:
+	# Languages: eng/ pl
+	# Języki: eng/ pl
+	lang: eng
+
+	chat.wyglad:{PREFIX} {C_PLAYER}{PLAYER}&8: {C_MSG}{MSG}
+	# {PREFIX} - colored player's prefix // kolorowy prefix gracza.
+	# {C_PLAYER} - color of player's name // kolor nazwy gracza.
+	# {PLAYER} - name of player // nazwa gracza.
+	# {C_MSG} - color of message // kolor wiadomości.
+	# {MSG} - message // wiadomość.
+
+	# Items needed to write on chat channels - administrative and trading.
+	# Przedmioty wymagane do pisania na kanałach czatu - administracyjny oraz handlowy.
+	item.chat.admin: sponge
+	item.chat.trade: stick
+	
+	# Chat prefix.
+	# Prefix czatu.
+	tag: &c»&9
+	# Message, that is displayed if the player hasn't permissions.
+	# Wiadomość, która wyświetla się jeżeli gracz nie ma uprawnień.
+	prms: &cYou don't have permissions to make it.
+	# Time (in seconds) after which the player can write another message.
+	# Czas (w sekundach), po których gracz może napisać kolejną wiadomość.
+	cooldown: 5
+	
+	# Script version - don't change :-)
+	# Wersja skryptu - nie zmieniaj :-)
+	version: 1.1
+	
+# SCRIPT CODE // KOD SKRYPTU.
+on chat:
+	cancel event
+	if {sopher.chat.status} is false:
+		if {sopher.chat.lang} is "eng":
+			send "{@tag} Chat is disable."
+		if {sopher.chat.lang} is "pl":
+			send "{@tag} Czat jest wylaczony."
+		stop
+	if {sopher.chat.mute::%player%} is true:
+		if {sopher.chat.lang} is "eng":
+			send "{@tag} You're muted on chat!"
+		if {sopher.chat.lang} is "pl":
+			send "{@tag} Jestes wyciszony na czacie!"
+		stop
+	if {sopher.chat.cooldown.%player%} is true:
+		if player don't have permission "sopher.chat.*" or "sopher.chat.cooldown" or "sopher.chat.opoznienie":
+			if {sopher.chat.lang} is "eng":
+				send "{@tag} You can send message every {@cooldown} seconds."
+			if {sopher.chat.lang} is "pl":
+				send "{@tag} Wiadomosc mozesz wysylac co {@cooldown} sekund."
+			stop
+	# Administrative channel.
+	# Kanał administracyjny.
+	if player is holding {@item.chat.admin}:
+		loop all players:
+			loop-player has permission "sopher.chat.*" or "sopher.chat.admin":			
+				send "&2* A * &f| %name of player%&8: &a%message%" to loop-player
+		stop
+	# Trading channel.
+	# Kanał handlowy.
+	if player is holding {@item.chat.trade}:
+		loop all players:
+			loop-player has permission "sopher.chat.*" or "sopher.chat.trade" or "sopher.chat.handel":		
+				if {sopher.chat.lang} is "eng":
+					send "&6* T * &f| %name of player%&8: &e%message%" to loop-player
+				if {sopher.chat.lang} is "pl":
+					send "&6* H * &f| %name of player%&8: &e%message%" to loop-player
+		stop
+	else:
+		loop {sopher.chat.cenzura::*}:
+			replace all loop-index with loop-value in message
+		set {_chat} to "{@chat.wyglad}"
+		replace all "{PREFIX}" with "%colored player's prefix%" in {_chat}
+		replace all "{PLAYER}" with "%display name of player%" in {_chat}
+		replace all "{MSG}" with "%message%" in {_chat}
+		replace all "{C_PLAYER}" with "%{sopher.chat::%player%.kolor_nick}%" in {_chat}
+		replace all "{C_MSG}" with "%{sopher.chat::%player%.kolor_msg}%" in {_chat}
+		send "%{_chat}%" to {_x::*}
+		set {sopher.chat.cooldown.%player%} to true
+		wait {@cooldown} real seconds
+		set {sopher.chat.cooldown.%player%} to false
+		stop
+		
+on join:
+	set {sopher.chat.cooldown.%player%} to false
+	set join message to ""
+	if {sopher.chat.mute::%player%} is not set:
+		set {sopher.chat.mute::%player%} to false
+	# SopherHideStream
+	loop all players:
+		if {sopher.hidestream.gracz::%loop-player%} is false:
+			stop
+		else:
+			if {sopher.chat.lang} is "eng":
+				send "{@tag} &e%name of player% joined the server!" to loop-player
+			if {sopher.chat.lang} is "pl":
+				send "{@tag} &e%name of player% dolaczyl na serwer!" to loop-player
+		
+	
+on quit:
+	set quit message to ""
+	loop all players:
+		if {sopher.hidestream.gracz::%loop-player%} is false:
+			stop
+		else:
+			if {sopher.chat.lang} is "eng":
+				send "{@tag} &e%name of player% left the server!" to loop-player
+			if {sopher.chat.lang} is "pl":
+				send "{@tag} &e%name of player% wyszedl z serwera!" to loop-player
+			
+command /rank [<text>] [<offline player>]:
+	aliases: ranga
+	trigger:
+		if player has permission "sopher.chat.*" or "sopher.chat.rank" or "sopher.chat.rank":
+			if arg 2 is set:
+				if arg 1 is "gracz" or "user" or "player":
+					set {sopher.chat::%name of arg 2%.kolor_nick} to "&7"
+					set {sopher.chat::%name of arg 2%.kolor_msg} to "&f"
+				if arg 1 is "dziewczyna" or "girl":
+					set {sopher.chat::%name of arg 2%.kolor_nick} to "&d"
+					set {sopher.chat::%name of arg 2%.kolor_msg} to "&f"
+				if arg 1 is "vip":
+					set {sopher.chat::%name of arg 2%.kolor_nick} to "&e"
+					set {sopher.chat::%name of arg 2%.kolor_msg} to "&f"
+				if arg 1 is "supervip":
+					set {sopher.chat::%name of arg 2%.kolor_nick} to "&6"
+					set {sopher.chat::%name of arg 2%.kolor_msg} to "&e"
+					send "{@tag} %name of arg 2% otrzymal range SUPERVIP na czacie."
+				if arg 1 is "kidmod":
+					set {sopher.chat::%name of arg 2%.kolor_nick} to "&a"
+					set {sopher.chat::%name of arg 2%.kolor_msg} to "&f"
+					send "{@tag} %name of arg 2% otrzymal range KIDMOD na czacie."
+				if arg 1 is "moderator" or "mod":
+					set {sopher.chat::%name of arg 2%.kolor_nick} to "&2"
+					set {sopher.chat::%name of arg 2%.kolor_msg} to "&a"
+					send "{@tag} %name of arg 2% otrzymal range MODERATOR na czacie."
+				if arg 1 is "supermod":
+					set {sopher.chat::%name of arg 2%.kolor_nick} to "&5"
+					set {sopher.chat::%name of arg 2%.kolor_msg} to "&d"
+					send "{@tag} %name of arg 2% otrzymal range SUPERMOD na czacie."
+				if arg 1 is "youtuber" or "youtube" or "yt":
+					set {sopher.chat::%name of arg 2%.kolor_nick} to "&9"
+					set {sopher.chat::%name of arg 2%.kolor_msg} to "&f"
+					send "{@tag} %name of arg 2% otrzymal range YOUTUBER na czacie."
+				if arg 1 is "admin":
+					set {sopher.chat::%name of arg 2%.kolor_nick} to "&c"
+					set {sopher.chat::%name of arg 2%.kolor_msg} to "&e"
+					send "{@tag} %name of arg 2% otrzymal range ADMIN na czacie."
+				if arg 1 is "headadmin":
+					set {sopher.chat::%name of arg 2%.kolor_nick} to "&4"
+					set {sopher.chat::%name of arg 2%.kolor_msg} to "&6"
+					send "{@tag} %name of arg 2% otrzymal range HEADADMIN na czacie."
+				if arg 1 is "wlasciciel" or "owner":
+					set {sopher.chat::%name of arg 2%.kolor_nick} to "&4&l"
+					set {sopher.chat::%name of arg 2%.kolor_msg} to "&d"
+					send "{@tag} %name of arg 2% otrzymal range WLASCICIEL na czacie."
+				if {sopher.chat.lang} is "eng":
+					send "{@tag} %name of arg 2% received rank %arg 1% on chat."
+					send "{@tag} You received rank %arg 1% on chat." to arg 2
+				if {sopher.chat.lang} is "pl":
+					send "{@tag} %name of arg 2% otrzymal range %arg 1% na czacie."
+					send "{@tag} Otrzymales range %arg 1% na czacie." to arg 2
+				stop
+			else:
+				if {sopher.chat.lang} is "eng":
+					send "{@tag} &e/rank <name> <player>"
+					send "{@tag} Available ranks: &fplayer, girl, vip, supervip, kidmod, mod, supermod, youtube, admin, headadmin, owner."
+				if {sopher.chat.lang} is "pl":
+					send "{@tag} &e/ranga <nazwa> <gracz>"
+					send "{@tag} Dostepne rangi: &fgracz, dziewczyna, vip, supervip, kidmod, mod, supermod, youtube, admin, headadmin, wlasciciel."
+				stop
+		else:
+			send "{@tag} {@prms}"
+			stop
+			
+command /chat [<text>] [<offline player>]:
+	aliases: czat
+	trigger:
+		if arg 1 is not set:
+			if player has permission "sopher.chat.*" or "sopher.chat.info":
+				if {sopher.chat.lang} is "eng":
+					if {sopher.chat.status} is true:
+						send "{@tag} Status: &aenabled"
+					if {sopher.chat.status} is false:
+						send "{@tag} Status: &cdisabled"
+				if {sopher.chat.lang} is "pl":
+					if {sopher.chat.status} is true:
+						send "{@tag} Status: &awlaczony"
+					if {sopher.chat.status} is false:
+						send "{@tag} Status: &cwylaczony"
+				stop
+			else:
+				send "{@tag} {@prms}"
+				stop
+		if arg 1 is "wlacz" or "on":
+			if player has permission "sopher.chat.*" or "sopher.chat.on" or "sopher.chat.wlacz" or "sopher.chat.enable":
+				if {sopher.chat.lang} is "eng":
+					if {sopher.chat.status} is true:
+						send "{@tag} &cChat is already on!"
+					if {sopher.chat.status} is false:
+						send "{@tag} &aChat is enabled!"
+						broadcast "{@tag} %name of player% enabled chat!"
+						set {sopher.chat.status} to true
+				if {sopher.chat.lang} is "pl":
+					if {sopher.chat.status} is true:
+						send "{@tag} &cCzat jest juz wlaczony!"
+					if {sopher.chat.status} is false:
+						send "{@tag} &aCzat zostal wlaczony!"
+						broadcast "{@tag} %name of player% wlaczyl czat!"
+						set {sopher.chat.status} to true
+				stop
+			else:
+				send "{@tag} {@prms}"
+				stop
+		if arg 1 is "wylacz" or "off":
+			if player has permission "sopher.chat.*" or "sopher.chat.off" or "sopher.chat.wylacz" or "sopher.chat.disable":
+				if {sopher.chat.lang} is "eng":
+					if {sopher.chat.status} is false:
+						send "{@tag} &cChat is already off!"
+					if {sopher.chat.status} is true:
+						send "{@tag} &aChat is disabled!"
+						broadcast "{@tag} %name of player% disabled chat!"
+						set {sopher.chat.status} to false
+				if {sopher.chat.lang} is "pl":
+					if {sopher.chat.status} is false:
+						send "{@tag} &cCzat jest juz wylaczony!"
+					if {sopher.chat.status} is true:
+						send "{@tag} &aCzat zostal wylaczony!"
+						broadcast "{@tag} %name of player% wylaczyl czat!"
+						set {sopher.chat.status} to false
+				stop
+			else:
+				send "{@tag} {@prms}"
+				stop
+		if arg 1 is "wycisz" or "mute":
+			if player has permission "sopher.chat.*" or "sopher.chat.mute" or "sopher.chat.wycisz":
+				if arg 2 is set:
+					if {sopher.chat.lang} is "eng":
+						if {sopher.chat.mute::%name of arg 2%} is false:
+							set {sopher.chat.mute::%name of arg 2%} to true
+							send "{@tag} &cPlayer %name of arg 2% muted on chat!"
+							send "{@tag} &cYou have been muted on chat by &e%name of player%&c." to arg 2
+							stop
+						if {sopher.chat.mute::%name of arg 2%} is true:
+							set {sopher.chat.mute::%name of arg 2%} to false
+							send "{@tag} &aPlayer %name of arg 2% unmuted on chat!"
+							send "{@tag} &aYou have beed unmuted on chat by &e%name of player%&c." to arg 2
+							stop
+					if {sopher.chat.lang} is "pl":
+						if {sopher.chat.mute::%name of arg 2%} is false:
+							set {sopher.chat.mute::%name of arg 2%} to true
+							send "{@tag} &cGracz %name of arg 2% zostal wyciszony na czacie!"
+							send "{@tag} &cZostales wyciszony na czacie przez &e%name of player%&c." to arg 2
+							stop
+						if {sopher.chat.mute::%name of arg 2%} is true:
+							set {sopher.chat.mute::%name of arg 2%} to false
+							send "{@tag} &aGracz %name of arg 2% zostal odciszony na czacie!"
+							send "{@tag} &aZostales odciszony na czacie przez &e%name of player%&c." to arg 2
+							stop
+				else:
+					if {sopher.chat.lang} is "eng":
+						send "{@tag} &cIncorrect command! Use - &e/chat mute <player>"
+					if {sopher.chat.lang} is "pl":
+						send "{@tag} &cNieprawidlowa komenda! Uzyj - &e/czat wycisz <gracz>"
+					stop
+			else:
+				send "{@tag} {@prms}"
+				stop
+		if arg 1 is "wyczysc" or "clear":
+			if player has permission "sopher.chat.*" or "sopher.chat.wyczysc" or "sopher.chat.clear":
+				loop 100 times:
+					broadcast "&k"
+				if {sopher.chat.lang} is "eng":
+					broadcast "{@tag} Chat has been cleared!"
+				if {soppher.chat.lang} is "pl":
+					broadcast "{@tag} Czat zostal wyczyszczony!"
+				stop
+			else:
+				send "{@tag} {@prms}"
+				stop
+		if arg 1 is "autor" or "author":
+			if name of player is "MrSopher":
+				send "{@tag} Server is running on SopherChat {@version}"
+				stop
+			else:
+				if {sopher.chat.lang} is "eng":
+					send "{@tag} Author: &aSopher"
+					send "{@tag} Contact: &ahttp://github.com/Sopher"
+				if {sopher.chat.lang} is "pl":
+					send "{@tag} Autor: &aSopher"
+					send "{@tag} Kontakt: &ahttp://github.com/Sopher"
+				stop
+			
+command /censure [<text>] [<text>]:
+	aliases: cenzura
+	trigger:
+		if player has permission "sopher.chat.*" or "sopher.chat.censure" or "sopher.chat.cenzura":
+			if arg 1 is not set:
+				if {sopher.chat.lang} is "eng":
+					send "| &cWORDS CENSORED &f|"
+					if size of {sopher.chat.censure::*} is 0:
+						send "No words are censored."
+					else:
+						send "%{sopher.chat.censure::*}%"
+				if {sopher.chat.lang} is "pl":
+					send "| &cSLOWA CENZUROWANE &f|"
+					if size of {sopher.chat.censure::*} is 0:
+						send "Zadne slowa nie sa cenzurowane."
+					else:
+						send "%{sopher.chat.censure::*}%"
+				stop
+			if arg 1 is set:
+				if arg 2 is set:
+					set {sopher.chat.censure::%arg 1%} to "%arg 2%"
+					if {sopher.chat.lang} is "eng":
+						send "{@tag} Added the word censorship &c%arg 1%&9. Censure: &c%arg 2%&9."
+					if {sopher.chat.lang} is "pl":
+						send "{@tag} Dodales cenzure wyrazu &c%arg 1%&9. Cenzura: &c%arg 2%&9."
+					stop
+				else:
+					if {sopher.chat.lang} is "eng":
+						send "{@tag} &cIncorrect command! Use: &e/censure <word> <censure>"
+					if {sopher.chat.lang} is "pl":
+						send "{@tag} &cNieprawidlowa komenda! Uzyj: &e/cenzura <slowo> <cenzura>"
+					stop
+			else:
+				if {sopher.chat.lang} is "eng":
+					send "{@tag} &cIncorrect command! Use: &e/censure <word> <censure>"
+				if {sopher.chat.lang} is "pl":
+					send "{@tag} &cNieprawidlowa komenda! Uzyj: &e/cenzura <slowo> <cenzura>"
+				stop
+		else:
+			send "{@tag} {@prms}"
+			stop
+				
+on script load:
+	set {sopher.chat.lang} to "{@lang}"
+	if {sopher.chat.lang} is "eng" or "pl":
+		send "[SopherChat] Successfully loaded. Version: {@version}" to console
+		send "[SopherChat] Developed by Sopher." to console
+	else:
+		send "[SopherChat] Unsuccessfully loaded. Version: {@version}" to console
+		send "[SopherChat] Error: wrong language name." to console
+		send "[SopherChat] Developed by Sopher." to console
+		stop script
