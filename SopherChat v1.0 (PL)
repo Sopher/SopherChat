@@ -15,7 +15,7 @@ variables:
 # Wlasciwosci chatu.
 	{sopher.chat.status} = true
 		
-# Konfiguracja
+# KONFIGURACJA
 options:
 	chat.wyglad: {PREFIX} {KOLOR_NICK}{GRACZ}&8: {KOLOR_MSG}{WIADOMOSC}
 # {PREFIX} - kolorowy prefix gracza.
